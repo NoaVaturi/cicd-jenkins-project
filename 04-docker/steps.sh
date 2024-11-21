@@ -7,11 +7,11 @@ Description=flask app
 After=network.target
 
 [Service]
-User=ec2-user
-Group=ec2-user
-WorkingDirectory=/home/ec2-user/app/
-Environment="PATH=/home/ec2-user/app/venv/bin"
-ExecStart=/home/ec2-user/app/venv/bin/python3 /home/ec2-user/app/app.py
+User=ubuntu
+Group=ubuntu
+WorkingDirectory=/home/ubuntu/app/
+Environment="PATH=/home/ubuntu/app/.venv/bin"
+ExecStart=/home/ubuntu/app/.venv/bin/python3 /home/ubuntu/app/app.py
 
 [Install]
 WantedBy=multi-user.target
