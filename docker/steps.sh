@@ -1,5 +1,10 @@
 #!/bin/bash
 
+
+# Print the paths of Python and pip to verify the virtual environment is activated
+which python3
+which pip
+
 # Create the 'app' directory if it doesn't exist
 mkdir -p /home/ubuntu/app
 
