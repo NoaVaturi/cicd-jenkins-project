@@ -1,7 +1,3 @@
-mkdir app
-python3 -m venv .venv
-
-
 [Unit]
 Description=flask app
 After=network.target
@@ -17,7 +13,7 @@ ExecStart=/home/ubuntu/app/.venv/bin/python3 /home/ubuntu/app/app.py
 WantedBy=multi-user.target
 
 
-sudo vi flaskapp.service
+sudo vi /etc/systemd/system/flaskapp.service
 sudo systemctl daemon-reload
 sudo systemctl enable flaskapp.service
 sudo systemctl start flaskapp.service
