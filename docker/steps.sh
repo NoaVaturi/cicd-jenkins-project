@@ -12,12 +12,12 @@ mkdir -p /home/ubuntu/app
 cd /home/ubuntu/app
 
 # Create a virtual environment if it doesn't exist
-if [ ! -d ".venv" ]; then
-    python3 -m venv .venv
+if [ ! -d "env" ]; then
+    python3 -m venv env
 fi
 
 # Activate the virtual environment
-source .venv/bin/activate
+source env/bin/activate
 
 # Upgrade pip to the latest version
 pip install --upgrade pip
