@@ -9,22 +9,40 @@ pipeline {
 
     
     stages {
+        stage('Checkout') {
+            steps {
+                dir('docker') {
+                    checkout([
+                        $class: 'GitSCM',
+                        branches: [[name: '*/main']], 
+                        userRemoteConfigs: [[url: 'https://github.com//NoaVaturi/cicd-jenkins-project.git']]
+                    ])
+                }
+            }
+        }
 
         stage('Setup') {
             steps {
-                sh "pip install -r requirements.txt"
+                dir('docker') {
+                    sh "pip install -r requirements.txt"
+                }  
             }
         }
+
         stage('Test') {
             steps {
-                sh "pytest"
+                dir('docker') {
+                    sh "pytest"
+                }   
             }
         }
 
         stage('Login to docker hub') {
             steps {
-                withCredentials([usernamePassword(credentialsId: 'dockerhub-creds', usernameVariable: 'USERNAME', passwordVariable: 'PASSWORD')]) {
+                dir('docker') {
+                    withCredentials([usernamePassword(credentialsId: 'dockerhub-creds', usernameVariable: 'USERNAME', passwordVariable: 'PASSWORD')]) {
                 sh 'echo ${PASSWORD} | docker login -u ${USERNAME} --password-stdin'}
+                }
                 echo 'Login successfully'
             }
         }
@@ -33,10 +51,11 @@ pipeline {
         {
             steps
             {
-                sh 'docker build -t ${IMAGE_TAG} .'
-                echo "Docker image build successfully"
-                sh 'docker image ls'
-                
+                dir('docker') {
+                    sh 'docker build -t ${IMAGE_TAG} .'
+                    echo "Docker image build successfully"
+                    sh 'docker image ls'
+                } 
             }
         }
 
@@ -44,8 +63,10 @@ pipeline {
         {
             steps
             {
-                sh 'docker push ${IMAGE_TAG}'
-                echo "Docker image push successfully"
+                dir('docker') {
+                    sh 'docker push ${IMAGE_TAG}'
+                    echo "Docker image push successfully"
+                }
             }
         }      
     }
