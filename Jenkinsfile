@@ -43,12 +43,12 @@ pipeline {
             }
         }
 
-        stage('Push Docker Image')
+        stage('Push Docker Image to DockerHub')
         {
             steps
             {
                 sh 'docker push ${IMAGE_TAG}'
-                echo "Docker image push successfully"
+                echo "Docker image pushed successfully to DockerHub."
             }
         }      
     }
