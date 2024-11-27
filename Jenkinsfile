@@ -15,9 +15,13 @@ pipeline {
                 sh 'bash steps.sh'
             }
         }
+
         stage('Test') {
             steps {
-                sh "pytest"
+                sh '''
+                   source app/env/bin/activate
+                    pytest test_app.py
+                '''
             }
         }
 
