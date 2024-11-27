@@ -1,27 +1,24 @@
-#!/bin/bash
-
-
-# Print the paths of Python and pip to verify the virtual environment is activated
-which python3
-which pip
-
-# Create the 'app' directory if it doesn't exist
-mkdir -p /home/ubuntu/app
-
-# Navigate into the app directory
-cd /home/ubuntu/app
-
-# Create a virtual environment if it doesn't exist
-if [ ! -d "env" ]; then
-    python3 -m venv env
-fi
-
-# Activate the virtual environment
-source env/bin/activate
-
-# Upgrade pip to the latest version
-pip install --upgrade pip
-
-# Install dependencies from requirements.txt
+mkdir app
+python3 -m venv app/env
+source app/env/bin/activate
 pip install -r requirements.txt
 
+[Unit]
+Description=flask app
+After=network.target
+
+[Service]
+User=ubuntu
+Group=ubuntu
+WorkingDirectory=/home/ubuntu/app/
+Environment="PATH=/home/ubuntu/app/env/bin"
+ExecStart=/home/ubuntu/app/env/bin/python3 /home/ubuntu/app/app.py
+
+[Install]
+WantedBy=multi-user.target
+
+
+sudo vi flaskapp.service
+sudo systemctl daemon-reload
+sudo systemctl enable flaskapp.service
+sudo systemctl start flaskapp.service

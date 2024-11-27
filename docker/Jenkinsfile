@@ -12,26 +12,19 @@ pipeline {
 
         stage('Setup') {
             steps {
-                dir('docker') {
-                    sh "pip install -r requirements.txt"
-                }  
+                sh 'bash steps.sh'
             }
         }
-
         stage('Test') {
             steps {
-                dir('docker') {
-                    sh "pytest"
-                }   
+                sh "pytest"
             }
         }
 
-        stage('Login to docker hub') {
+        stage('Login to DockerHub') {
             steps {
-                dir('docker') {
-                    withCredentials([usernamePassword(credentialsId: 'dockerhub-creds', usernameVariable: 'USERNAME', passwordVariable: 'PASSWORD')]) {
-                    sh 'echo ${PASSWORD} | docker login -u ${USERNAME} --password-stdin'}
-                }
+                withCredentials([usernamePassword(credentialsId: 'dockerhub-creds', usernameVariable: 'USERNAME', passwordVariable: 'PASSWORD')]) {
+                sh 'echo ${PASSWORD} | docker login -u ${USERNAME} --password-stdin'}
                 echo 'Login successfully'
             }
         }
@@ -40,11 +33,10 @@ pipeline {
         {
             steps
             {
-                dir('docker') {
-                    sh 'docker build -t ${IMAGE_TAG} .'
-                    echo "Docker image build successfully"
-                    sh 'docker image ls'
-                } 
+                sh 'docker build -t ${IMAGE_TAG} .'
+                echo "Docker image build successfully"
+                sh 'docker image ls'
+                
             }
         }
 
@@ -52,10 +44,8 @@ pipeline {
         {
             steps
             {
-                dir('docker') {
-                    sh 'docker push ${IMAGE_TAG}'
-                    echo "Docker image push successfully"
-                }
+                sh 'docker push ${IMAGE_TAG}'
+                echo "Docker image push successfully"
             }
         }      
     }
