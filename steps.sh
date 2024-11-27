@@ -9,6 +9,8 @@ source env/bin/activate
 pip install --cache-dir=/var/lib/jenkins/.cache/pip -r ../requirements.txt
 sudo cp ../flaskapp.service /etc/systemd/system/flaskapp.service
 
-sudo systemctl daemon-reload
+sudo systemctl daemon-reload 
 sudo systemctl enable flaskapp.service
 sudo systemctl start flaskapp.service
+
+#consider creating a user with sudo privillages instead of changing the visudo file.
