@@ -3,13 +3,13 @@ pipeline {
 
     environment {
         IMAGE_NAME = 'vnoah/flask-app'
-        IMAGE_TAG = "${IMAGE_NAME}:${env.GIT_COMMIT}"
+        IMAGE_TAG = "${IMAGE_NAME}:${env.GIT_COMMIT.take(7)}"
+        DOCKER_CREDENTIALS = 'dockerhub-creds'
         
     }
 
     
     stages {
-
         stage('Setup') {
             steps {
                 sh 'bash steps.sh'
@@ -26,9 +26,10 @@ pipeline {
 
         stage('Login to DockerHub') {
             steps {
-                withCredentials([usernamePassword(credentialsId: 'dockerhub-creds', usernameVariable: 'USERNAME', passwordVariable: 'PASSWORD')]) {
-                sh 'echo ${PASSWORD} | docker login -u ${USERNAME} --password-stdin'}
-                echo 'Login successfully'
+                script {
+                    docker.withRegistry('https://index.docker.io/v1/', DOCKER_CREDENTIALS) {
+                        echo "Logged in to DockerHub"
+                    }
             }
         }
 
@@ -36,9 +37,10 @@ pipeline {
         {
             steps
             {
-                sh 'docker build -t ${IMAGE_TAG} .'
-                echo "Docker image build successfully"
-                sh 'docker image ls'
+                script {
+                    docker.build("${IMAGE_TAG}")
+                }
+                echo "Docker image built successfully."
                 
             }
         }
@@ -47,9 +49,20 @@ pipeline {
         {
             steps
             {
-                sh 'docker push ${IMAGE_TAG}'
+                script {
+                    docker.withRegistry('https://index.docker.io/v1/', DOCKER_CREDENTIALS) {
+                        docker.image("${IMAGE_TAG}").push()
+                    }
+                }
                 echo "Docker image pushed successfully to DockerHub."
             }
-        }      
+        }
+
+        post {
+        cleanup {
+            sh 'docker system prune -f'  // Optional: clean up unused Docker data
+            echo "Cleaned up Docker environment."
+        }
+    }      
     }
 }
