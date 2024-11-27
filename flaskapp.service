@@ -5,9 +5,9 @@ After=network.target
 [Service]
 User=ubuntu
 Group=ubuntu
-WorkingDirectory=/home/ubuntu/app
-Environment="PATH=/home/ubuntu/app/env/bin"
-ExecStart=/home/ubuntu/app/env/bin/python3 /home/ubuntu/app/app.py
+WorkingDirectory=/var/lib/jenkins/workspace/jenkins-git-docker/app
+Environment="PATH=/var/lib/jenkins/workspace/jenkins-git-docker/app/env/bin"
+ExecStart=/var/lib/jenkins/workspace/jenkins-git-docker/app/env/bin/python3 /var/lib/jenkins/workspace/jenkins-git-docker/app/app.py
 
 [Install]
 WantedBy=multi-user.target
