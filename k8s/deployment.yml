@@ -17,5 +17,3 @@ spec:
         image: vnoah/flask-app
         ports:
         - containerPort: 5000
-
-#consider running kubernetes on jenkins instance
