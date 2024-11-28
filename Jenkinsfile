@@ -5,7 +5,7 @@ pipeline {
         IMAGE_NAME = 'vnoah/flask-app'
         IMAGE_TAG = "${IMAGE_NAME}:${env.GIT_COMMIT.take(7)}"
         DOCKER_CREDENTIALS = 'dockerhub-creds'
-        KUBECONFIG = credentials('kubeconfig-creds')
+        KUBECONFIG = '/var/lib/jenkins/.kube/config' //use direct path instead of using jenkins credentials
         AWS_ACCESS_KEY_ID = credentials('aws-access-key')
         AWS_SECRET_ACCESS_KEY = credentials('aws-secret-key')
     }
@@ -57,15 +57,13 @@ pipeline {
 
         stage('Deploy to Staging') {
             steps {
-                withCredentials([file(credentialsId: 'kubeconfig-creds', variable: 'KUBECONFIG')]) {
-                    sh 'kubectl config use-context arn:aws:eks:us-east-1:098211963825:cluster/staging-cluster'
-                    sh 'kubectl config current-context'
-                    sh "kubectl set image deployment/flask-app flask-app=${IMAGE_TAG}"
-                }
+                sh 'kubectl config use-context arn:aws:eks:us-east-1:098211963825:cluster/staging-cluster'
+                sh 'kubectl config current-context'
+                sh "kubectl set image deployment/flask-app flask-app=${IMAGE_TAG}"
             }
         }
 
-         stage('Acceptance Test') {
+        stage('Acceptance Test') {
             steps {
                 script {
                     def service = sh(script: "kubectl get svc flask-app-service -o jsonpath='{.status.loadBalancer.ingress[0].hostname}:{.spec.ports[0].port}'", returnStdout: true).trim()
@@ -76,18 +74,13 @@ pipeline {
             }
         }
 
-        stage('Deploy to Production')
-        {
+        stage('Deploy to Production') {
             steps {
-                withCredentials([file(credentialsId: 'kubeconfig-creds', variable: 'KUBECONFIG')]) {
-                    sh 'kubectl config use-context arn:aws:eks:us-east-1:098211963825:cluster/production-cluster'
-                    sh 'kubectl config current-context'
-                    sh "kubectl set image deployment/flask-app flask-app=${IMAGE_TAG}"
-                }
+                sh 'kubectl config use-context arn:aws:eks:us-east-1:098211963825:cluster/production-cluster'
+                sh 'kubectl config current-context'
+                sh "kubectl set image deployment/flask-app flask-app=${IMAGE_TAG}"
             }
         }       
     }
 
 }
-
-
