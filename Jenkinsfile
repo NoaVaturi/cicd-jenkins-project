@@ -83,4 +83,11 @@ pipeline {
         }       
     }
 
+    post {
+        cleanup {
+            sh 'docker system prune -f'  // Optional: Clean up unused Docker data
+            echo "Cleaned up Docker environment."
+        }
+    }
+
 }
