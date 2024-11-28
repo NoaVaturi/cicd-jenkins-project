@@ -6,14 +6,14 @@ pipeline {
         IMAGE_TAG = "${IMAGE_NAME}:${env.GIT_COMMIT.take(7)}"
         DOCKER_CREDENTIALS = 'dockerhub-creds'
         KUBECONFIG = '/var/lib/jenkins/.kube/config' //use direct path instead of using jenkins credentials.
-        AWS_ACCESS_KEY_ID = credentials('aws-access-key') //when running 'aws configure' in the jenkins instance there is no need to set credentials as well.
-        AWS_SECRET_ACCESS_KEY = credentials('aws-secret-key')
     }
 
     stages {
         stage('Setup') {
             steps {
                 sh 'bash steps.sh'
+                sh 'kubectl version --client'     // Verify kubectl
+                sh 'kubectl get contexts' 
             }
         }
 
