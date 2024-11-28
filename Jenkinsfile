@@ -5,7 +5,7 @@ pipeline {
         IMAGE_NAME = 'vnoah/flask-app'
         IMAGE_TAG = "${IMAGE_NAME}:${env.GIT_COMMIT.take(7)}"
         DOCKER_CREDENTIALS = 'dockerhub-creds'
-        KUBECONFIG = credentials('kubeconfig-credentials')
+        KUBECONFIG = credentials('kubeconfig-creds')
         AWS_ACCESS_KEY_ID = credentials('aws-access-key')
         AWS_SECRET_ACCESS_KEY = credentials('aws-secret-key')
     }
@@ -29,7 +29,7 @@ pipeline {
             steps {
                 script {
                     docker.withRegistry('https://index.docker.io/v1/', DOCKER_CREDENTIALS) {
-                        echo "Logged in to DockerHub"
+                        echo "Logged in to DockerHub."
                     }
                 }
             }
@@ -57,9 +57,11 @@ pipeline {
 
         stage('Deploy to Staging') {
             steps {
-                sh 'kubectl config use-context arn:aws:eks:us-east-1:098211963825:cluster/staging-cluster'
-                sh 'kubectl config current-context'
-                sh "kubectl set image deployment/flask-app flask-app=${IMAGE_TAG}"
+                withCredentials([file(credentialsId: 'kubeconfig-creds', variable: 'KUBECONFIG')]) {
+                    sh 'kubectl config use-context arn:aws:eks:us-east-1:098211963825:cluster/staging-cluster'
+                    sh 'kubectl config current-context'
+                    sh "kubectl set image deployment/flask-app flask-app=${IMAGE_TAG}"
+                }
             }
         }
 
@@ -77,17 +79,15 @@ pipeline {
         stage('Deploy to Production')
         {
             steps {
-                sh 'kubectl config use-context arn:aws:eks:us-east-1:098211963825:cluster/staging-cluster'
-                sh 'kubectl config current-context'
-                sh "kubectl set image deployment/flask-app flask-app=${IMAGE_TAG}"
+                withCredentials([file(credentialsId: 'kubeconfig-creds', variable: 'KUBECONFIG')]) {
+                    sh 'kubectl config use-context arn:aws:eks:us-east-1:098211963825:cluster/production-cluster'
+                    sh 'kubectl config current-context'
+                    sh "kubectl set image deployment/flask-app flask-app=${IMAGE_TAG}"
+                }
             }
         }       
     }
 
-    post {
-        cleanup {
-            sh 'docker system prune -f'  // Optional: clean up unused Docker data
-            echo "Cleaned up Docker environment."
-        }
-    }
 }
+
+
