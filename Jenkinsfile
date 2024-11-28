@@ -5,6 +5,9 @@ pipeline {
         IMAGE_NAME = 'vnoah/flask-app'
         IMAGE_TAG = "${IMAGE_NAME}:${env.GIT_COMMIT.take(7)}"
         DOCKER_CREDENTIALS = 'dockerhub-creds'
+        KUBECONFIG = credentials('kubeconfig-credentials')
+        AWS_ACCESS_KEY_ID = credentials('aws-access-key')
+        AWS_SECRET_ACCESS_KEY = credentials('aws-secret-key')
     }
 
     stages {
@@ -51,6 +54,34 @@ pipeline {
                 echo "Docker image pushed successfully to DockerHub."
             }
         }
+
+        stage('Deploy to Staging') {
+            steps {
+                sh 'kubectl config use-context arn:aws:eks:us-east-1:098211963825:cluster/staging-cluster'
+                sh 'kubectl config current-context'
+                sh "kubectl set image deployment/flask-app flask-app=${IMAGE_TAG}"
+            }
+        }
+
+         stage('Acceptance Test') {
+            steps {
+                script {
+                    def service = sh(script: "kubectl get svc flask-app-service -o jsonpath='{.status.loadBalancer.ingress[0].hostname}:{.spec.ports[0].port}'", returnStdout: true).trim()
+                    echo "${service}"
+
+                    sh "k6 run -e SERVICE=${service} acceptance-test.js"
+                }
+            }
+        }
+
+        stage('Deploy to Production')
+        {
+            steps {
+                sh 'kubectl config use-context arn:aws:eks:us-east-1:098211963825:cluster/staging-cluster'
+                sh 'kubectl config current-context'
+                sh "kubectl set image deployment/flask-app flask-app=${IMAGE_TAG}"
+            }
+        }       
     }
 
     post {
