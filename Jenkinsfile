@@ -5,7 +5,6 @@ pipeline {
         IMAGE_NAME = 'vnoah/flask-app'
         IMAGE_TAG = "${IMAGE_NAME}:${env.GIT_COMMIT.take(7)}"
         DOCKER_CREDENTIALS = 'dockerhub-creds'
-        KUBECONFIG = credentials('kubeconfig-creds')
     }
 
     stages {
@@ -13,7 +12,7 @@ pipeline {
             steps {
                 sh 'bash steps.sh'
                 withCredentials([file(credentialsId: 'kubeconfig-creds', variable: 'KUBECONFIG')]) {
-                    sh 'export KUBECONFIG=$KUBECONFIG && kubectl get contexts'
+                    sh 'kubectl get contexts'  
                 }
             }
         }
