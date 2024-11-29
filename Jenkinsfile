@@ -12,7 +12,7 @@ pipeline {
         stage('Setup') {
             steps {
                 sh 'bash steps.sh'
-                sh 'kubectl version --client'     // Verify kubectl
+                sh 'kubectl version --client'  
                 sh 'kubectl get contexts' 
             }
         }
