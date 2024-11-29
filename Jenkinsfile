@@ -12,9 +12,7 @@ pipeline {
         stage('Setup') {
             steps {
                 sh 'bash steps.sh'
-                withCredentials([file(credentialsId: 'kubeconfig-credentials', variable: 'KUBECONFIG')]) {
-                    sh 'export KUBECONFIG=$KUBECONFIG && kubectl get contexts'
-                }
+                sh 'kubectl get contexts'
             }
         }
 
