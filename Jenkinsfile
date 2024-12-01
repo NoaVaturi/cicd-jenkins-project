@@ -59,6 +59,8 @@ pipeline {
         stage('Deploy to Staging') {
             steps {
                 withCredentials([file(credentialsId: 'kubeconfig-credentials', variable: 'KUBECONFIG')]) {
+                    sh 'chmod 600 $KUBECONFIG'
+                    sh 'export KUBECONFIG=$KUBECONFIG'
                     sh 'kubectl config use-context staging-cluster'
                     sh 'kubectl config current-context'
                     sh "kubectl set image deployment/flask-app flask-app=${IMAGE_TAG}"
