@@ -12,9 +12,10 @@ pipeline {
         stage('Setup') {
             steps {
                 sh 'bash steps.sh'
-                withCredentials([file(credentialsId: 'kubeconfig-credentials', variable: 'KUBECONFIG')]) {
-                    sh 'kubectl config get-contexts'  
-                }
+                sh 'kubectl config get-contexts'
+                //withCredentials([file(credentialsId: 'kubeconfig-credentials', variable: 'KUBECONFIG')]) {
+                      
+                //}
             }
         }
 
