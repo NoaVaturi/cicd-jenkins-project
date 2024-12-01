@@ -5,14 +5,14 @@ pipeline {
         IMAGE_NAME = 'vnoah/flask-app'
         IMAGE_TAG = "${IMAGE_NAME}:${env.GIT_COMMIT.take(7)}"
         DOCKER_CREDENTIALS = 'dockerhub-creds'
-        KUBECONFIG = credentials('kubeconfig-creds')
+        KUBECONFIG = credentials('kubeconfig-credentials')
     }
 
     stages {
         stage('Setup') {
             steps {
                 sh 'bash steps.sh'
-                withCredentials([file(credentialsId: 'kubeconfig-creds', variable: 'KUBECONFIG')]) {
+                withCredentials([file(credentialsId: 'kubeconfig-credentials', variable: 'KUBECONFIG')]) {
                     sh 'kubectl get contexts'  
                 }
             }
@@ -58,7 +58,7 @@ pipeline {
 
         stage('Deploy to Staging') {
             steps {
-                withCredentials([file(credentialsId: 'kubeconfig-creds', variable: 'KUBECONFIG')]) {
+                withCredentials([file(credentialsId: 'kubeconfig-credentials', variable: 'KUBECONFIG')]) {
                     sh 'kubectl config use-context arn:aws:eks:us-east-1:098211963825:cluster/staging-cluster'
                     sh 'kubectl config current-context'
                     sh "kubectl set image deployment/flask-app flask-app=${IMAGE_TAG}"
@@ -79,7 +79,7 @@ pipeline {
 
         stage('Deploy to Production') {
             steps {
-                withCredentials([file(credentialsId: 'kubeconfig-creds', variable: 'KUBECONFIG')]) {
+                withCredentials([file(credentialsId: 'kubeconfig-credentials', variable: 'KUBECONFIG')]) {
                     sh 'kubectl config use-context arn:aws:eks:us-east-1:098211963825:cluster/production-cluster'
                     sh 'kubectl config current-context'
                     sh "kubectl set image deployment/flask-app flask-app=${IMAGE_TAG}"
