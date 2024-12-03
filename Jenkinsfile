@@ -5,7 +5,8 @@ pipeline {
         IMAGE_NAME = 'vnoah/flask-app'
         IMAGE_TAG = "${IMAGE_NAME}:${env.GIT_COMMIT.take(7)}"
         DOCKER_CREDENTIALS = 'dockerhub-creds'
-        KUBECONFIG = credentials('kubeconfig-credentials')
+        KUBECONFIG = credentials('kubeconfig-creds')
+        AWS_CREDENTIALS = credentials('aws-creds')
     }
 
     stages {
@@ -13,9 +14,6 @@ pipeline {
             steps {
                 sh 'bash steps.sh'
                 sh 'kubectl config get-contexts'
-                //withCredentials([file(credentialsId: 'kubeconfig-credentials', variable: 'KUBECONFIG')]) {
-                      
-                //}
             }
         }
 
@@ -64,9 +62,6 @@ pipeline {
                 sh 'kubectl config use-context staging-cluster'
                 sh 'kubectl config current-context'
                 sh "kubectl set image deployment/flask-app flask-app=${IMAGE_TAG}"
-                //withCredentials([file(credentialsId: 'kubeconfig-credentials', variable: 'KUBECONFIG')]) {
-                    
-                //}
             }
         }
 
