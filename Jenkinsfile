@@ -5,7 +5,7 @@ pipeline {
         IMAGE_NAME = 'vnoah/flask-app'
         IMAGE_TAG = "${IMAGE_NAME}:${env.GIT_COMMIT.take(7)}"
         DOCKER_CREDENTIALS = 'dockerhub-creds'
-        KUBECONFIG = credentials('kubeconfig-creds')
+        KUBECONFIG = credentials('kubecofnig-creds')
         AWS_CREDENTIALS = credentials('aws-creds')
     }
 
