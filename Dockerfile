@@ -1,18 +1,19 @@
 FROM python:3.12-alpine3.18
 
-# Copy the entire application and requirements.txt
-COPY . /application
-
-# Set the working directory
+# Set working directory
 WORKDIR /application
 
-# Upgrade pip and install dependencies
+# Copy the application files
+COPY . /application
+
+# Install dependencies (including pytest)
+COPY requirements.txt .
 RUN pip install --no-cache-dir --upgrade pip && \
     pip install --no-cache-dir -r requirements.txt && \
     rm -rf /root/.cache
 
-# Expose the port that the Flask app will run on
+# Expose port for the application
 EXPOSE 5000
 
-# Command to run the Flask app
+# Start the Flask application
 CMD ["python", "app.py"]
