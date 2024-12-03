@@ -22,7 +22,6 @@ pipeline {
                 aws eks --region us-east-1 update-kubeconfig --name staging-cluster --alias staging-context --kubeconfig=/tmp/kubeconfig
                 aws eks --region us-east-1 update-kubeconfig --name production-cluster --alias production-context --kubeconfig=/tmp/kubeconfig
                 '''
-               sh 'chmod 600 /tmp/kubeconfig'
                sh 'kubectl config get-contexts --kubeconfig=/tmp/kubeconfig'
             }
         }
