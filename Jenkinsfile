@@ -6,22 +6,24 @@ pipeline {
         IMAGE_TAG = "${IMAGE_NAME}:${env.GIT_COMMIT.take(7)}"
         DOCKER_CREDENTIALS = 'dockerhub-creds'
         KUBECONFIG = '/tmp/kubeconfig'
-        AWS_CREDENTIALS = credentials('aws-creds')
+        AWS_ACCESS_KEY_ID = credentials('aws-access-key-id')
+        AWS_SECRET_ACCESS_KEY = credentials('aws-secret-access-key')
     }
 
     stages {
         stage('Setup') {
             steps {
                 sh 'bash steps.sh'
-                sh '''
-                aws sts get-caller-identity
-                '''
+                sh 'aws sts get-caller-identity'
 
-                sh 'aws eks --region us-east-1 update-kubeconfig --name staging-cluster --alias staging-context --kubeconfig /tmp/kubeconfig'
-                sh 'aws eks --region us-east-1 update-kubeconfig --name production-cluster --alias production-context --kubeconfig /tmp/kubeconfig'
-                sh 'chmod 600 /tmp/kubeconfig'
-                sh 'cat /tmp/kubeconfig'
-                sh 'kubectl config get-contexts'
+                sh '''
+                aws configure set aws_access_key_id $AWS_ACCESS_KEY_ID
+                aws configure set aws_secret_access_key $AWS_SECRET_ACCESS_KEY
+                aws eks --region us-east-1 update-kubeconfig --name staging-cluster --alias staging-context --kubeconfig=/tmp/kubeconfig
+                aws eks --region us-east-1 update-kubeconfig --name production-cluster --alias production-context --kubeconfig=/tmp/kubeconfig
+                '''
+               sh 'chmod 600 /tmp/kubeconfig'
+               sh 'kubectl config get-contexts --kubeconfig=/tmp/kubeconfig'
             }
         }
 
@@ -84,6 +86,7 @@ pipeline {
         cleanup {
             sh 'docker system prune -f'  // Optional: Clean up unused Docker data
             sh 'rm -f /tmp/kubeconfig'   // Remove the kubeconfig file
+            sh 'if [ -d ~/.kube/cache ]; then rm -rf ~/.kube/cache; fi' // Only remove cache if it exists
             echo "Cleaned up Docker environment and removed kubeconfig file."
         }
     }
