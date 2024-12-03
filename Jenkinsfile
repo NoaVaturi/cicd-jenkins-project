@@ -78,7 +78,8 @@ pipeline {
     post {
         cleanup {
             sh 'docker system prune -f'  // Optional: Clean up unused Docker data
-            echo "Cleaned up Docker environment."
+            sh 'rm -f /tmp/kubeconfig'   // Remove the kubeconfig file
+            echo "Cleaned up Docker environment and removed kubeconfig file."
         }
     }
 
