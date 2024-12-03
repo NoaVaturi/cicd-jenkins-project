@@ -13,7 +13,6 @@ pipeline {
     stages {
         stage('Setup') {
             steps {
-                sh 'bash steps.sh'
                 sh 'aws sts get-caller-identity'
 
                 sh '''
@@ -28,9 +27,7 @@ pipeline {
 
         stage('Test') {
             steps {
-                sh '''
-                bash -c "source app/env/bin/activate && pytest test_app.py"
-                '''
+                sh 'pytest'
             }
         }
 
