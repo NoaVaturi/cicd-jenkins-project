@@ -62,13 +62,35 @@ pipeline {
         stage('Acceptance Test') {
             steps {
                 script {
-                    def service = sh(script: "kubectl get svc flask-app-service -o jsonpath='{.status.loadBalancer.ingress[0].hostname}:{.spec.ports[0].port}'", returnStdout: true).trim()
-                    echo "${service}"
+                    // Wait for 30 seconds to allow time for the service to be available
+                    sh 'sleep 30'
 
-                    sh "k6 run -e SERVICE=${service} acceptance-test.js"
+                    // Initialize a variable to hold the service information
+                    def service = ''
+                    def retryCount = 0
+
+                    // Retry getting the service until it's available or we reach the maximum retry count
+                    while (!service && retryCount < 5) {
+                         service = sh(script: "kubectl get svc flask-app-service --namespace=staging-namespace -o jsonpath='{.status.loadBalancer.ingress[0].hostname}:{.spec.ports[0].port}' --kubeconfig=${KUBECONFIG}", returnStdout: true).trim()
+                
+                         if (!service) {
+                            retryCount++
+                            echo "Retry ${retryCount}: Service not found, waiting 30 more seconds."
+                            sh 'sleep 30'
                 }
             }
+
+            // If service was found, run the acceptance test
+            if (service) {
+                echo "Service is available at: ${service}"
+                sh "k6 run -e SERVICE=${service} acceptance-test.js"
+            } else {
+                error "Service EXTERNAL-IP not available after multiple retries"
+            }
         }
+    }
+}
+
 
         stage('Deploy to Production') {
             steps {
