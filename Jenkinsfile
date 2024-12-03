@@ -13,6 +13,8 @@ pipeline {
         stage('Setup') {
             steps {
                 sh 'bash steps.sh'
+                sh "aws eks --region us-east-1 update-kubeconfig --name staging-cluster --alias staging-context"
+                sh "aws eks --region us-east-1 update-kubeconfig --name production-cluster --alias production-context"
                 sh 'kubectl config get-contexts'
             }
         }
