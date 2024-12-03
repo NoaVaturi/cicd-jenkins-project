@@ -25,8 +25,9 @@ pipeline {
 
         stage('Test') {
             steps {
-                // Run pytest directly from the Docker container
-                sh 'docker run --rm ${IMAGE_TAG} pytest'
+                // Run tests inside a temporary container without building the image first
+                // Assume pytest is included in requirements.txt
+                sh 'docker run --rm -v $PWD:/app -w /app python:3.12-alpine3.18 pytest'
             }
         }
 
