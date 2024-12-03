@@ -53,7 +53,7 @@ pipeline {
         stage('Deploy to Staging') {
             steps {
                 sh 'kubectl config use-context staging-context --kubeconfig=${KUBECONFIG}'
-                sh "kubectl set image deployment/flask-app flask-app=${IMAGE_TAG} --kubeconfig=${KUBECONFIG}"
+                sh "kubectl set image deployment/flask-app flask-app=${IMAGE_TAG} --namespace=staging-namespace --kubeconfig=${KUBECONFIG}"
             }
         }
 
@@ -71,7 +71,7 @@ pipeline {
         stage('Deploy to Production') {
             steps {
                 sh 'kubectl config use-context production-context --kubeconfig=${KUBECONFIG}'
-                sh "kubectl set image deployment/flask-app flask-app=${IMAGE_TAG} --kubeconfig=${KUBECONFIG}"
+                sh "kubectl set image deployment/flask-app flask-app=${IMAGE_TAG} --namespace=production-namespace --kubeconfig=${KUBECONFIG}"
             }
         }       
     }
