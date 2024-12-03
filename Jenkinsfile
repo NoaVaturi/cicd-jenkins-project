@@ -13,9 +13,14 @@ pipeline {
         stage('Setup') {
             steps {
                 sh 'bash steps.sh'
+                sh '''
+                aws sts get-caller-identity
+                '''
+
                 sh 'aws eks --region us-east-1 update-kubeconfig --name staging-cluster --alias staging-context --kubeconfig /tmp/kubeconfig'
                 sh 'aws eks --region us-east-1 update-kubeconfig --name production-cluster --alias production-context --kubeconfig /tmp/kubeconfig'
                 sh 'chmod 600 /tmp/kubeconfig'
+                sh 'cat /tmp/kubeconfig'
                 sh 'kubectl config get-contexts'
             }
         }
