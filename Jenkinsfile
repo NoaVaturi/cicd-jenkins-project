@@ -13,6 +13,7 @@ pipeline {
     stages {
         stage('Setup') {
             steps {
+                sh "pip install -r requirements.txt"
                 sh 'aws sts get-caller-identity'
 
                 sh '''
@@ -25,9 +26,7 @@ pipeline {
 
         stage('Test') {
             steps {
-                // Run tests inside a temporary container without building the image first
-                // Assume pytest is included in requirements.txt
-                sh 'docker run --rm -v $PWD:/app -w /app python:3.12-alpine3.18 pytest'
+                sh 'pytest'
             }
         }
 
