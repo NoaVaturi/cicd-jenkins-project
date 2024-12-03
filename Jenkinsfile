@@ -25,16 +25,6 @@ pipeline {
             }
         }
 
-        stage('Login to DockerHub') {
-            steps {
-                script {
-                    docker.withRegistry('https://index.docker.io/v1/', DOCKER_CREDENTIALS) {
-                        echo "Logged in to DockerHub."
-                    }
-                }
-            }
-        }
-
         stage('Build Docker Image') {
             steps {
                 script {
@@ -47,6 +37,7 @@ pipeline {
         stage('Push Docker Image to DockerHub') {
             steps {
                 script {
+                    // Using docker.withRegistry to securely login to DockerHub
                     docker.withRegistry('https://index.docker.io/v1/', DOCKER_CREDENTIALS) {
                         docker.image("${IMAGE_TAG}").push()
                     }
@@ -59,7 +50,7 @@ pipeline {
             steps {
                 sh 'chmod 600 $KUBECONFIG'
                 sh 'export KUBECONFIG=$KUBECONFIG'
-                sh 'kubectl config use-context staging-cluster'
+                sh 'kubectl config use-context staging-context'
                 sh 'kubectl config current-context'
                 sh "kubectl set image deployment/flask-app flask-app=${IMAGE_TAG}"
             }
@@ -78,12 +69,9 @@ pipeline {
 
         stage('Deploy to Production') {
             steps {
-                sh 'kubectl config use-context production-cluster'
+                sh 'kubectl config use-context production-context'
                 sh 'kubectl config current-context'
                 sh "kubectl set image deployment/flask-app flask-app=${IMAGE_TAG}"
-                //withCredentials([file(credentialsId: 'kubeconfig-credentials', variable: 'KUBECONFIG')]) {
-                    
-                //}
             }
         }       
     }
