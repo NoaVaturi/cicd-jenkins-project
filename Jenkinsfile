@@ -16,8 +16,6 @@ pipeline {
                 sh 'aws sts get-caller-identity'
 
                 sh '''
-                aws configure set aws_access_key_id $AWS_ACCESS_KEY_ID
-                aws configure set aws_secret_access_key $AWS_SECRET_ACCESS_KEY
                 aws eks --region us-east-1 update-kubeconfig --name staging-cluster --alias staging-context --kubeconfig=/tmp/kubeconfig
                 aws eks --region us-east-1 update-kubeconfig --name production-cluster --alias production-context --kubeconfig=/tmp/kubeconfig
                 '''
