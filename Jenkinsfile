@@ -5,7 +5,7 @@ pipeline {
         IMAGE_NAME = 'vnoah/flask-app'
         IMAGE_TAG = "${IMAGE_NAME}:${env.GIT_COMMIT.take(7)}"
         DOCKER_CREDENTIALS = 'dockerhub-creds'
-        KUBECONFIG = "/home/ubuntu/.kube/config"
+        KUBECONFIG = '/home/ubuntu/.kube/config'
     }
 
     stages {
@@ -14,7 +14,7 @@ pipeline {
                 sh 'bash steps.sh'
                 sh 'chmod +x steps.sh'
                 sh 'aws sts get-caller-identity'
-                
+
                 sh '''
                 aws eks --region us-east-1 update-kubeconfig --name staging-cluster --alias staging-context --kubeconfig=${KUBECONFIG}
                 aws eks --region us-east-1 update-kubeconfig --name production-cluster --alias production-context --kubeconfig=${KUBECONFIG}
