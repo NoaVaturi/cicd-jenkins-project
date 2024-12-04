@@ -5,7 +5,7 @@ pipeline {
         IMAGE_NAME = 'vnoah/flask-app'
         IMAGE_TAG = "${IMAGE_NAME}:${env.GIT_COMMIT.take(7)}"
         DOCKER_CREDENTIALS = 'dockerhub-creds'
-        KUBECONFIG = '/home/ubuntu/.kube/config'
+        KUBECONFIG = '/tmp/kubeconfig'
     }
 
     stages {
@@ -13,6 +13,12 @@ pipeline {
             steps {
                 sh 'bash steps.sh'
                 sh 'chmod +x steps.sh'
+
+                sh '''
+                cp ~/.kube/config /tmp/kubeconfig
+                chmod 644 /tmp/kubeconfig
+                '''
+
                 sh 'aws sts get-caller-identity'
 
                 sh '''
