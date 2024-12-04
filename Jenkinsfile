@@ -13,6 +13,7 @@ pipeline {
             steps {
                 sh 'bash steps.sh'
                 sh 'chmod +x steps.sh'
+                sh 'chmod 644 $KUBECONFIG'
                 sh 'aws sts get-caller-identity'
 
                 sh '''
