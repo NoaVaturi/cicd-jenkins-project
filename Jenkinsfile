@@ -15,7 +15,7 @@ pipeline {
                 sh 'chmod +x steps.sh'
 
                 sh '''
-                cp home/ubuntu/.kube/config /tmp/kubeconfig
+                cp /home/ubuntu/.kube/config /tmp/kubeconfig
                 chmod 644 /tmp/kubeconfig
                 '''
 
