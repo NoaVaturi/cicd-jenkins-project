@@ -13,6 +13,7 @@ pipeline {
             steps {
                 sh 'bash steps.sh'
                 sh 'chmod +x steps.sh'
+                sh 'chmod 644 $KUBECONFIG'
                 sh 'aws sts get-caller-identity'
 
                 sh '''
@@ -95,9 +96,6 @@ pipeline {
             }
         }
 
-
-
-
         stage('Deploy to Production') {
             steps {
                 sh 'kubectl config use-context production-context --kubeconfig=${KUBECONFIG}'
@@ -107,7 +105,7 @@ pipeline {
             }
         }       
     }
-    
+
     post {
         cleanup {
             sh 'docker system prune -f'  // Optional: Clean up unused Docker data
