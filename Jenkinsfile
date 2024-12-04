@@ -106,7 +106,8 @@ pipeline {
                 sh "kubectl set image deployment/flask-app flask-app=${IMAGE_TAG} --namespace=production-namespace --kubeconfig=${KUBECONFIG}"
             }
         }       
-
+    }
+    
     post {
         cleanup {
             sh 'docker system prune -f'  // Optional: Clean up unused Docker data
