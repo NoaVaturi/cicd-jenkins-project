@@ -71,25 +71,31 @@ pipeline {
 
                     // Retry getting the service until it's available or we reach the maximum retry count
                     while (!service && retryCount < 5) {
-                         service = sh(script: "kubectl get svc flask-app-service --namespace=staging-namespace -o jsonpath='{.status.loadBalancer.ingress[0].hostname}:{.spec.ports[0].port}' --kubeconfig=${KUBECONFIG}", returnStdout: true).trim()
+                                service = sh(script: "kubectl get svc flask-app-service --namespace=staging-namespace -o jsonpath='{.status.loadBalancer.ingress[0].hostname}:{.spec.ports[0].port}' --kubeconfig=${KUBECONFIG}", returnStdout: true).trim()
                 
-                         if (!service) {
-                            retryCount++
-                            echo "Retry ${retryCount}: Service not found, waiting 30 more seconds."
-                            sh 'sleep 30'
+                                if (!service) {
+                                        retryCount++
+                                        echo "Retry ${retryCount}: Service not found, waiting 30 more seconds."
+                                        sh 'sleep 30'
+                                }
+                    }    
+
+                    // If the service is still not found after retries, fail the build
+                    if (!service) {
+                            error "Service not found after 5 retries. Failing the acceptance test."
+                    }
+
+                    echo "Running acceptance tests on service: ${service}"
+
+                     // Run the k6 test using the Docker container
+                    sh """
+                    docker run --rm -v \$(pwd):/scripts grafana/k6 run -e SERVICE=${service} /scripts/acceptance-test.js
+                    """
                 }
             }
-
-            // If service was found, run the acceptance test
-            if (service) {
-                echo "Service is available at: ${service}"
-                sh "k6 run -e SERVICE=${service} acceptance-test.js"
-            } else {
-                error "Service EXTERNAL-IP not available after multiple retries"
-            }
         }
-    }
-}
+
+
 
 
         stage('Deploy to Production') {
@@ -100,7 +106,6 @@ pipeline {
                 sh "kubectl set image deployment/flask-app flask-app=${IMAGE_TAG} --namespace=production-namespace --kubeconfig=${KUBECONFIG}"
             }
         }       
-    }
 
     post {
         cleanup {
