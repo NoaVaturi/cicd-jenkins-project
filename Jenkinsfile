@@ -28,19 +28,24 @@ pipeline {
             }
         }
 
-        stage('Build and Push Docker Image') {
+        stage('Build Docker Image') {
             steps {
-                withCredentials([usernamePassword(credentialsId: 'dockerhub-creds', 
-                                             usernameVariable: 'DOCKER_USER', 
-                                             passwordVariable: 'DOCKER_PASSWORD')]) {
-                           
-                    script {
-                        def image = docker.build("${DOCKER_USER}/flask-app:${IMAGE_TAG}")
-                        image.push()
-                    }
-                }   
+                sh 'sudo docker build -t ${IMAGE_TAG} .'
+                echo "Docker image built successfully: ${IMAGE_TAG}"
             }
         }
+
+        stage('Push Docker Image to DockerHub') {
+            steps {
+                script {
+                    docker.withRegistry('https://index.docker.io/v1/', 'DOCKER_CREDENTIALS') {
+                    docker.image("${IMAGE_TAG}").push()
+                    }
+                }
+                echo "Docker image pushed successfully to DockerHub."
+            }
+        }
+
 
         stage('Deploy to Staging') {
             steps {
