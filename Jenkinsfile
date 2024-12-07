@@ -38,7 +38,7 @@ pipeline {
         stage('Push Docker Image to DockerHub') {
             steps {
                 script {
-                    docker.withRegistry('https://index.docker.io/v1/', 'DOCKER_CREDENTIALS') {
+                    docker.withRegistry('https://index.docker.io/v1/', 'dockerhub-creds') {
                         echo "Logged into DockerHub successfully, now pushing image..."
                         docker.image("${IMAGE_TAG}").push()
                     }
