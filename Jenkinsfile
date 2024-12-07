@@ -14,10 +14,9 @@ pipeline {
                 sh 'bash steps.sh'
                 sh 'chmod +x steps.sh'
 
-                withCredentials([file(credentialsId: 'kubeconfig-creds', variable: 'KUBECONFIG_FILE')]) {
-                    sh 'chmod 644 ${KUBECONFIG_FILE}'
+                withCredentials([file(credentialsId: 'kubeconfig-creds', variable: 'KUBECONFIG')]) {
+                    sh 'chmod 644 ${KUBECONFIG}'
                     sh 'aws sts get-caller-identity'
-                    sh 'export KUBECONFIG=${KUBECONFIG_FILE}'
                     sh 'kubectl config get-contexts --kubeconfig=${KUBECONFIG}'
                 }
             }
