@@ -31,10 +31,8 @@ pipeline {
 
         stage('Build Docker Image') {
             steps {
-                script {
-                    def image = docker.build("${IMAGE_TAG}")
-                    echo "Docker image built successfully: ${image.id}"
-                }
+                sh 'sudo docker build -t ${IMAGE_TAG} .'
+                echo "Docker image built successfully: ${image.id}"
             }
         }
 
