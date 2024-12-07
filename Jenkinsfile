@@ -40,9 +40,9 @@ pipeline {
                 script {
                     withCredentials([usernamePassword(credentialsId: 'dockerhub-creds', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASSWORD')]) {
                         sh 'echo "$DOCKER_PASSWORD" | docker login --username "$DOCKER_USER" --password-stdin https://index.docker.io/v1/'
-                        echo "Logged into DockerHub successfully, now pushing image..."
+                        echo "Logged into DockerHub successfully."
                         
-                        docker.image("${IMAGE_TAG}").push()
+                        sh 'docker push ${IMAGE_TAG}'
                     }          
                 }
                 echo "Docker image pushed successfully to DockerHub."
