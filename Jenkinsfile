@@ -15,15 +15,15 @@ pipeline {
                 sh 'chmod +x steps.sh'
 
                 sh '''
-                cp /home/ubuntu/.kube/config /tmp/kubeconfig
+                cp /home/ec2-user/.kube/config /tmp/kubeconfig
                 chmod 644 /tmp/kubeconfig
                 '''
 
                 sh 'aws sts get-caller-identity'
 
                 sh '''
-                aws eks --region us-east-1 update-kubeconfig --name staging-cluster --alias staging-context --kubeconfig=${KUBECONFIG}
-                aws eks --region us-east-1 update-kubeconfig --name production-cluster --alias production-context --kubeconfig=${KUBECONFIG}
+                aws eks --region us-east-1 update-kubeconfig --name Staging --alias stage --kubeconfig=${KUBECONFIG}
+                aws eks --region us-east-1 update-kubeconfig --name Production --alias prod --kubeconfig=${KUBECONFIG}
                 '''
                sh 'kubectl config get-contexts --kubeconfig=${KUBECONFIG}'
             }
@@ -47,7 +47,6 @@ pipeline {
         stage('Push Docker Image to DockerHub') {
            steps {
                 script {
-                    // Use docker.withRegistry for secure login and image push
                     docker.withRegistry('https://index.docker.io/v1/', DOCKER_CREDENTIALS) {
                         docker.image("${IMAGE_TAG}").push()
                     }
@@ -58,10 +57,14 @@ pipeline {
 
         stage('Deploy to Staging') {
             steps {
-                sh 'kubectl config use-context staging-context --kubeconfig=${KUBECONFIG}'
-                sh 'kubectl apply -f deployment.yml --namespace=staging-namespace --kubeconfig=${KUBECONFIG}'
-                sh 'kubectl apply -f service.yml --namespace=staging-namespace --kubeconfig=${KUBECONFIG}'
-                sh "kubectl set image deployment/flask-app flask-app=${IMAGE_TAG} --namespace=staging-namespace --kubeconfig=${KUBECONFIG}"
+                sh 'kubectl config use-context stage --kubeconfig=${KUBECONFIG}'
+
+                sh '''
+                helm upgrade --install flask-app ./helm \
+                     --namespace stage-namespace \
+                     --set namespace=stage-namespace \
+                     --set image.tag="${IMAGE_TAG}"
+                '''
             }
         }
 
@@ -103,10 +106,14 @@ pipeline {
 
         stage('Deploy to Production') {
             steps {
-                sh 'kubectl config use-context production-context --kubeconfig=${KUBECONFIG}'
-                sh 'kubectl apply -f deployment.yml --namespace=production-namespace --kubeconfig=${KUBECONFIG}'
-                sh 'kubectl apply -f service.yml --namespace=production-namespace --kubeconfig=${KUBECONFIG}'
-                sh "kubectl set image deployment/flask-app flask-app=${IMAGE_TAG} --namespace=production-namespace --kubeconfig=${KUBECONFIG}"
+                sh 'kubectl config use-context prod --kubeconfig=${KUBECONFIG}'
+
+                sh '''
+                helm upgrade --install flask-app ./helm \
+                     --namespace prod-namespace \
+                     --set namespace=prod-namespace \
+                     --set image.tag="${IMAGE_TAG}"
+                '''
             }
         }       
     }

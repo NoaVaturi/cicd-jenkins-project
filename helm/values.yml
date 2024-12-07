@@ -1,0 +1,28 @@
+namespace: ""     
+  
+
+dockerConfigJson: |
+  {
+    "auths": {
+      "https://index.docker.io/v1/": {
+        "username": "vnoah",
+        "password": "zyfwoz-ditre8-fUkciv",
+        "email": "vaturinoah@gmail.com"
+      }
+    }
+  }
+
+image:
+  repository: "vnoah/flask-app"
+  tag: "latest"
+  pullSecret: "dockerhub-secret"
+
+app:
+  name: flask-app
+
+
+service:
+  name: flask-app-service
+  type: LoadBalancer
+  port: 5000
+  targetPort: 5000
