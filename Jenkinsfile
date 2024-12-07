@@ -4,15 +4,15 @@ pipeline {
     environment {
         IMAGE_NAME = 'vnoah/flask-app'
         IMAGE_TAG = "${IMAGE_NAME}:${env.GIT_COMMIT.take(7)}"
-        DOCKER_CREDENTIALS = credentials('dockerhub-creds')
         KUBECONFIG = '/tmp/kubeconfig'
     }
 
     stages {
         stage('Setup') {
             steps {
-                sh 'bash steps.sh'
                 sh 'chmod +x steps.sh'
+                sh './steps.sh'
+                
 
                 withCredentials([file(credentialsId: 'kubeconfig-creds', variable: 'KUBECONFIG')]) {
                     sh 'chmod 644 ${KUBECONFIG}'
@@ -28,21 +28,19 @@ pipeline {
             }
         }
 
-        stage('Build Docker Image') {
+        stage('Build and Push Docker Image') {
             steps {
-                sh 'sudo docker build -t ${IMAGE_TAG} .'
-                echo "Docker image built successfully: ${image.id}"
-            }
-        }
-
-        stage('Push Docker Image to DockerHub') {
-           steps {
-                script {
-                    docker.withRegistry('https://index.docker.io/v1/', DOCKER_CREDENTIALS) {
-                        docker.image("${IMAGE_TAG}").push()
+                withCredentials([usernamePassword(credentialsId: 'dockerhub-creds', 
+                                                 usernameVariable: 'DOCKER_USER', 
+                                                 passwordVariable: 'DOCKER_PASSWORD')]) {
+                    sh '''
+                        echo "Logging into Docker Hub"
+                        echo $DOCKER_PASSWORD | docker login --username $DOCKER_USER --password-stdin
+                    '''
+                    script {
+                        docker.build("${DOCKER_USER}/flask-app:${BUILD_NUMBER}").push()
                     }
                 }
-                echo "Docker image pushed successfully to DockerHub."
             }
         }
 
@@ -62,32 +60,27 @@ pipeline {
         stage('Acceptance Test') {
             steps {
                 script {
-                    // Wait for 30 seconds to allow time for the service to be available
                     sh 'sleep 30'
 
-                    // Initialize a variable to hold the service information
                     def service = ''
                     def retryCount = 0
 
-                    // Retry getting the service until it's available or we reach the maximum retry count
                     while (!service && retryCount < 5) {
-                                service = sh(script: "kubectl get svc flask-app-service --namespace=staging-namespace -o jsonpath='{.status.loadBalancer.ingress[0].hostname}:{.spec.ports[0].port}' --kubeconfig=${KUBECONFIG}", returnStdout: true).trim()
-                
-                                if (!service) {
-                                        retryCount++
-                                        echo "Retry ${retryCount}: Service not found, waiting 30 more seconds."
-                                        sh 'sleep 30'
-                                }
-                    }    
+                        try {
+                            service = sh(script: "kubectl get svc flask-app-service --namespace=stage-namespace -o jsonpath='{.status.loadBalancer.ingress[0].hostname}:{.spec.ports[0].port}' --kubeconfig=${KUBECONFIG}", returnStdout: true).trim()
+                        } catch (Exception e) {
+                            retryCount++
+                            echo "Retry ${retryCount}: Waiting for service to be available..."
+                            sh 'sleep 30'
+                        }
+                    }
 
-                    // If the service is still not found after retries, fail the build
                     if (!service) {
-                            error "Service not found after 5 retries. Failing the acceptance test."
+                        error "Service not found after 5 retries. Acceptance test failed."
                     }
 
                     echo "Running acceptance tests on service: ${service}"
 
-                     // Run the k6 test using the Docker container
                     sh """
                     docker run --rm -v \$(pwd):/scripts grafana/k6 run -e SERVICE=${service} /scripts/acceptance-test.js
                     """
@@ -111,9 +104,8 @@ pipeline {
 
     post {
         cleanup {
-            sh 'docker system prune -f'  // Optional: Clean up unused Docker data
-            sh 'if [ -d ~/.kube/cache ]; then rm -rf ~/.kube/cache; fi' // Only remove cache if it exists
-            echo "Cleaned up Docker environment and removed kubeconfig file."
+            sh 'docker system prune -f'
+            sh 'rm -rf ~/.kube/cache || true'
         }
     }
 
