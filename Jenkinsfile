@@ -30,15 +30,22 @@ pipeline {
 
         stage('Build and Push Docker Image') {
             steps {
-                withCredentials([usernamePassword(credentialsId: 'dockerhub-creds', 
-                                                 usernameVariable: 'DOCKER_USER', 
-                                                 passwordVariable: 'DOCKER_PASSWORD')]) {
-                    sh '''
-                        echo "Logging into Docker Hub"
-                        echo $DOCKER_PASSWORD | docker login --username $DOCKER_USER --password-stdin
-                    '''
-                    script {
-                        docker.build("${DOCKER_USER}/flask-app:${BUILD_NUMBER}").push()
+                script {
+                    withCredentials([usernamePassword(credentialsId: 'dockerhub-creds', 
+                                             usernameVariable: 'DOCKER_USER', 
+                                             passwordVariable: 'DOCKER_PASSWORD')]) {
+                           
+                            echo "Logging into Docker Hub as: ${DOCKER_USER}"
+                            sh '''
+                            echo $DOCKER_PASSWORD | docker login --username $DOCKER_USER --password-stdin
+                            docker system info | grep Username
+                            '''
+
+                            echo "Building Docker image: ${DOCKER_USER}/flask-app:${BUILD_NUMBER}"
+                            sh 'docker info'
+
+                            def image = docker.build("${DOCKER_USER}/flask-app:${BUILD_NUMBER}")
+                            image.push()
                     }
                 }
             }
