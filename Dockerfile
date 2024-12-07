@@ -7,7 +7,8 @@ COPY requirements.txt .
 
 
 # Install dependencies (and clean up to reduce image size)
-RUN pip install --no-cache-dir -r requirements.txt && \
+RUN pip install --no-cache-dir --upgrade pip && \
+    pip install --no-cache-dir -r requirements.txt && \
     rm -rf /root/.cache
 
 # Now copy the entire application

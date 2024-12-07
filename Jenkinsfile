@@ -1,6 +1,6 @@
 pipeline {
     agent any
-    
+
     environment {
         IMAGE_NAME = 'vnoah/flask-app'
         IMAGE_TAG = "${IMAGE_NAME}:${env.GIT_COMMIT.take(7)}"
@@ -14,18 +14,14 @@ pipeline {
                 sh 'bash steps.sh'
                 sh 'chmod +x steps.sh'
 
-                sh '''
-                cp /home/ec2-user/.kube/config /tmp/kubeconfig
-                chmod 644 /tmp/kubeconfig
-                '''
+                withCredentials([file(credentialsId: 'kubeconfig-creds', variable: 'KUBECONFIG_FILE')]) {
+                    sh 'chmod 644 ${KUBECONFIG_FILE}'
+                    sh 'aws sts get-caller-identity'
 
-                sh 'aws sts get-caller-identity'
+                    sh 'export KUBECONFIG=${KUBECONFIG_FILE}'
 
-                sh '''
-                aws eks --region us-east-1 update-kubeconfig --name Staging --alias stage --kubeconfig=${KUBECONFIG}
-                aws eks --region us-east-1 update-kubeconfig --name Production --alias prod --kubeconfig=${KUBECONFIG}
-                '''
-               sh 'kubectl config get-contexts --kubeconfig=${KUBECONFIG}'
+                    sh 'kubectl config get-contexts --kubeconfig=${KUBECONFIG}'
+                }
             }
         }
 
