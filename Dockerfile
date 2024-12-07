@@ -9,8 +9,8 @@ COPY requirements.txt .
 # Install dependencies (and clean up to reduce image size)
 RUN python3 -m venv /venv && \
     /venv/bin/pip install --no-cache-dir --upgrade pip && \
-    /venv/bin/pip install --no-cache-dir -r requirements.txt\
-    rm -rf /root/.cache
+    /venv/bin/pip install --no-cache-dir -r requirements.txt
+   
 
 # Now copy the entire application
 COPY . /application 
