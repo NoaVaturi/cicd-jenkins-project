@@ -1,6 +1,6 @@
 pipeline {
     agent any
-
+    
     environment {
         IMAGE_NAME = 'vnoah/flask-app'
         IMAGE_TAG = "${IMAGE_NAME}:${env.GIT_COMMIT.take(7)}"
