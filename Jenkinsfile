@@ -32,9 +32,9 @@ pipeline {
         stage('Build Docker Image') {
             steps {
                 script {
-                    docker.build("${IMAGE_TAG}")
+                    def image = docker.build("${IMAGE_TAG}")
+                    echo "Docker image built successfully: ${image.id}"
                 }
-                echo "Docker image built successfully."
             }
         }
 
